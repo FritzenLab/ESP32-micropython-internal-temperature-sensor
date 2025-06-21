@@ -12,7 +12,7 @@ tempsensor = ADC(4)
 ledDelay= time.ticks_ms()
 tempDelay= time.ticks_ms()
 adcntc = ADC(Pin(3))
-adcntc.atten(ADC.ATTN_11DB) 
+adcntc.atten(ADC.ATTN_11DB) # 0 - 3.3V input range
 
 BETA = 4000           # Beta parameter (adjust to your thermistor)
 T0 = 298.15           # Reference temperature (Kelvin) = 25°C (273.15 + 25)
@@ -23,9 +23,10 @@ VREF = 3.3            # ADC reference voltage
 def read_temperature():
     adc_val = adcntc.read_u16()
     voltage = adc_val * VREF / 65535
+    #print("V ntc= ", voltage) #analog voltage on pin A3 (ntc reading)
     
     # Calculate thermistor resistance using voltage divider formula
-    r_ntc = R_FIXED * voltage / (VREF - voltage)
+    r_ntc = R_FIXED * (VREF / voltage - 1)
 
     # Apply Beta equation to calculate temperature (Kelvin)
     temperature_kelvin = 1 / (1/T0 + (1/BETA) * math.log(r_ntc / R0))
@@ -38,7 +39,7 @@ while True:
     if time.ticks_ms() - tempDelay > 1000:
         tempDelay= time.ticks_ms()
         temp = esp32.mcu_temperature()
-        print("CPU Temperature: {:.2f}°C".format(temp))
+        print("CPU Temperature: {:.0f}°C".format(temp))
         tempntc = read_temperature()
         print("NTC Temperature: {:.2f}°C".format(tempntc))
         print("__________________________")
